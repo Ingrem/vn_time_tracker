@@ -1,7 +1,7 @@
 use crate::core::game_crud::rename_game;
 use crate::ui::app::GameUpdate;
 use crate::{core::game_launch::start_game, ui::app::TimeTrackerApp, ui::ui_patterns::*};
-use eframe::egui::{Align, FontId, Key, Label, Layout, RichText, ScrollArea, Sense, TextEdit, Ui, Vec2};
+use eframe::egui::{Align, Color32, Context, FontId, Key, Label, Layout, RichText, ScrollArea, Sense, TextEdit, Ui, Vec2, Visuals};
 use egui_extras::{Column, TableBuilder, TableRow};
 use std::sync::mpsc::Sender;
 
@@ -25,7 +25,11 @@ fn draw_game_row(
     row.col(|ui| {
         if editing_name.as_ref() == Some(&game.id) {
             let response = ui.add(
-                TextEdit::singleline(&mut game.name).font(FontId::proportional(20.0)).desired_width(f32::INFINITY),
+                TextEdit::singleline(&mut game.name)
+                    .font(FontId::proportional(20.0))
+                    .desired_width(f32::INFINITY)
+                    .background_color(Color32::from_rgb(200, 200, 200))
+                    .text_color(Color32::from_rgb(40, 40, 40))
             );
 
             let commit = response.lost_focus()
@@ -65,7 +69,7 @@ fn draw_game_row(
 }
 
 /// Draws the main games table with actions: Start, Sessions, Delete.
-pub fn draw_games_table(app: &mut TimeTrackerApp, ui: &mut Ui) {
+pub fn draw_games_table(app: &mut TimeTrackerApp, ui: &mut Ui, ctx: &Context) {
     // Get updates about running games
     while let Ok(update) = app.updates_rx.try_recv() {
         if let Some(game) = app.state.games.iter_mut().find(|g| g.id == update.game_id) {
@@ -73,9 +77,19 @@ pub fn draw_games_table(app: &mut TimeTrackerApp, ui: &mut Ui) {
         }
     }
     // "Add game" button
-    if action_button(ui, "➕ Add game", Vec2::new(150.0, 30.0), Some(ButtonStyle::Success)).clicked() {
-        app.state.show_add_game_window = true;
-    }
+    ui.horizontal(|ui| {
+        if action_button(ui, "➕ Add game", Vec2::new(150.0, 30.0), Some(ButtonStyle::Success)).clicked() {
+            app.state.show_add_game_window = true;
+        }
+        if action_button(ui, "🌓", Vec2::new(30.0, 30.0), None).clicked() {
+            app.state.dark_mode = !app.state.dark_mode;
+            if app.state.dark_mode {
+                ctx.set_visuals(Visuals::dark());
+            } else {
+                ctx.set_visuals(Visuals::light());
+            }
+        }
+    });
 
     ui.separator();
     ui.separator();

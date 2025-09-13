@@ -14,6 +14,7 @@ pub struct PersistedState {
     pub editing_name: Option<u32>,
     pub show_sessions_window: Option<u32>,
     pub show_confirm_delete_window: Option<u32>,
+    pub dark_mode: bool,
 }
 
 pub struct GameUpdate {
@@ -36,13 +37,21 @@ impl Default for PersistedState {
             editing_name: None,
             show_sessions_window: None,
             show_confirm_delete_window: None,
+            dark_mode: false,
         }
     }
 }
 
 impl TimeTrackerApp {
     pub fn new(cc: &CreationContext<'_>) -> Self {
-        let state = cc.storage.and_then(|storage| eframe::get_value(storage, eframe::APP_KEY)).unwrap_or_default();
+        let state: PersistedState =
+            cc.storage.and_then(|storage| eframe::get_value(storage, eframe::APP_KEY)).unwrap_or_default();
+
+        if state.dark_mode {
+            cc.egui_ctx.set_visuals(egui::Visuals::dark());
+        } else {
+            cc.egui_ctx.set_visuals(egui::Visuals::light());
+        }
 
         let (tx, rx) = channel::<GameUpdate>();
 
@@ -53,7 +62,7 @@ impl TimeTrackerApp {
 impl App for TimeTrackerApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui::main_window::draw_games_table(self, ui);
+            ui::main_window::draw_games_table(self, ui, ctx);
             ui::add_game_window::draw_add_game_window(self, ctx);
             ui::show_sessions_window::draw_sessions_window(self, ctx);
             ui::delete_game_window::draw_confirm_delete_window(self, ctx);
@@ -76,16 +85,10 @@ pub fn run_gui() -> eframe::Result<()> {
             icon: Some(icon),
             ..Default::default()
         },
+        vsync: true,
         persist_window: true,
         ..Default::default()
     };
 
-    eframe::run_native(
-        "VN Time Tracker",
-        options,
-        Box::new(|cc| {
-            cc.egui_ctx.set_visuals(egui::Visuals::dark());
-            Ok(Box::new(TimeTrackerApp::new(cc)))
-        }),
-    )
+    eframe::run_native("VN Time Tracker", options, Box::new(|cc| Ok(Box::new(TimeTrackerApp::new(cc)))))
 }

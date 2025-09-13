@@ -4,10 +4,13 @@ use eframe::egui::{self, Color32, RichText, ScrollArea, Vec2};
 
 /// Drow one session data
 fn draw_session_row(ui: &mut egui::Ui, date: &str, duration: &str) {
+    let text_color =
+        if ui.visuals().dark_mode { Color32::from_rgb(200, 200, 200) } else { Color32::from_rgb(10, 10, 10) };
+
     ui.horizontal(|ui| {
         ui.label(RichText::new(date).size(16.0));
         ui.add_space(8.0);
-        ui.label(RichText::new(duration).size(16.0).color(Color32::from_rgb(200, 200, 200)));
+        ui.label(RichText::new(duration).size(16.0).color(text_color));
     });
 }
 

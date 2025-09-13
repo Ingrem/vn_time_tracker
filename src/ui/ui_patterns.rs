@@ -88,7 +88,10 @@ pub fn labeled_text_edit(
     ui.horizontal(|ui| {
         ui.label(RichText::new(label).size(label_size));
         ui.add_space(10.0);
-        let edit = TextEdit::singleline(value).font(FontId::proportional(font_size));
+        let edit = TextEdit::singleline(value)
+            .font(FontId::proportional(font_size))
+            .background_color(Color32::from_rgb(200, 200, 200))
+            .text_color(Color32::from_rgb(40, 40, 40));
         ui.add_sized(edit_size, edit);
     });
 }
